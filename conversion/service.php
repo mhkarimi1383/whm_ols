@@ -1,17 +1,18 @@
 <?php
-echo "\n CHECKING LSHTTPD SERVICE\n";
+echo "\n CHECKING LSHTTPD SERVICE \n";
 $service = shell_exec("systemctl status lshttpd -l");
 if (strpos($service, 'active (running)') !== false) {
-	echo "\nSERVICE IS OKAY!!\n"; 
+	echo "\n SERVICE IS OKAY! \n";
 } else {
-	echo "\n Attempting to Fix LSHTTPD Service \n ";
+	echo "\n Attempting to Fix LSHTTPD Service \n";
 	shell_exec("systemctl stop lshttpd");
 	shell_exec("systemctl start lshttpd");
 }
 
-echo "\n GENERATING LSWS CONFIG\n";
+echo "\n GENERATING LSWS CONFIG \n";
 if (file_exists("/usr/local/lsws/.changesDetect") && file_get_contents("/usr/local/lsws/.changesDetect") == changesDetector()) {
-	die("No changes detected!");
+	echo "\n No changes detected! \n";
+	exit();
 }
 file_put_contents("/usr/local/lsws/.changesDetect", changesDetector());
 
@@ -128,9 +129,9 @@ function changesDetector() {
 }
 
 function convertPHP($phpId) {
-	if (substr($phpId, 6) == 'ea-php') {
+	if (substr($phpId, 0, 6) == 'ea-php') {
 		return "/opt/cpanel/$phpId/root/usr/bin/lsphp";
-	} else if (substr($phpId, 7) == 'alt-php') {
+	} else if (substr($phpId, 0, 7) == 'alt-php') {
 		return '/opt/' . str_replace('-', '/', $phpId) . '/usr/bin/lsphp';
 	}
 	return '/usr/local/bin/lsphp';

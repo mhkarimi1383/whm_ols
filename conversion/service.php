@@ -38,7 +38,7 @@ $premade = '';
 $listeners = [];
 $listeners_ssl = [];
 foreach ($domains as $domain) {
-	$sslInfo = json_decode(shell_exec("whmapi1 --output=json fetch_vhost_ssl_components domain=" . escapeshellarg($domain["domain"])), true);
+	$sslInfo = json_decode(shell_exec("whmapi1 --output=json fetch_vhost_ssl_components"), true);
 	foreach ($sslInfo["data"]["components"] as $v) {
 		if ($v["servername"] == $domain["domain"]) {
 			$crt  = $v["crt"] ?? "";

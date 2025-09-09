@@ -38,11 +38,15 @@ $premade = '';
 $listeners = [];
 $listeners_ssl = [];
 foreach ($domains as $domain) {
-	$sslInfo = json_decode(shell_exec("whmapi1 --output=json   fetch_vhost_ssl_components"), true);
+	$sslInfo = json_decode(shell_exec("whmapi1 --output=json fetch_vhost_ssl_components domain=" . escapeshellarg($domain["domain"])), true);
 	foreach ($sslInfo["data"]["components"] as $v) {
 		if ($v["servername"] == $domain["domain"]) {
-			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".crt", $v["certificate"]);
-			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".key", $v["key"]);
+			$crt  = $v["crt"] ?? "";
+			$key  = $v["key"] ?? "";
+			$cab  = $v["cabundle"] ?? "";
+			$bundle = $crt . PHP_EOL . $cab;
+			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".crt", $bundle);
+			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".key", $key);
 		}
 	}
 	$w = file_get_contents("vhost.conf");

@@ -30,6 +30,7 @@ clear
 echo " STARTING LSWS WEB SERVER "
 systemctl disable httpd
 systemctl stop httpd
+systemctl mask httpd
 systemctl start lshttpd
 systemctl enable lshttpd
 systemctl status lshttpd

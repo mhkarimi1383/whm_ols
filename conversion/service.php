@@ -41,7 +41,7 @@ foreach ($domains as $domain) {
 	$sslInfo = json_decode(shell_exec("whmapi1 --output=json fetch_vhost_ssl_components"), true);
 	foreach ($sslInfo["data"]["components"] as $v) {
 		if ($v["servername"] == $domain["domain"]) {
-			$crt  = $v["crt"] ?? "";
+			$crt  = $v["certificate"] ?? "";
 			$key  = $v["key"] ?? "";
 			$cab  = $v["cabundle"] ?? "";
 			$bundle = $crt . PHP_EOL . $cab;
@@ -128,6 +128,7 @@ function changesDetector() {
 	foreach ($sslInfo as $v) {
 		$c .= $v["certificate"];
 		$c .= $v["key"];
+		$c .= $v["cabundle"];
 	}
 	return md5($c);
 }

@@ -31,6 +31,10 @@ $domains[] = [
 	'docroot' => "/var/www/html",
 	'ipv4_ssl' => json_decode(shell_exec('whmapi1 --output=json get_shared_ip'), true)['data']['ip'],
 ];
+// Fix strange bug
+if (empty($domains[count($domains) - 1]['domain'])) {
+	array_pop($domains);
+}
 $premade_pre = file_get_contents("/usr/local/lsws/conf/httpd_config.conf");
 $premade_pre = explode("## DO NOT MODIFY BELOW", $premade_pre);
 $premade_pre[0] = rtrim($premade_pre[0]);

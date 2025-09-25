@@ -18,18 +18,18 @@ file_put_contents("/usr/local/lsws/.changesDetect", changesDetector());
 
 shell_exec("rm -rf /usr/local/lsws/conf/vhosts && mkdir /usr/local/lsws/conf/vhosts");
 shell_exec("rm -rf /usr/local/lsws/conf/sslcerts && mkdir /usr/local/lsws/conf/sslcerts");
-$domains = json_decode(shell_exec("whmapi1 --output=json get_domain_info"), true);
+$domains = callWhmApi("--output=json get_domain_info");
 $domains = $domains["data"]["domains"];
 // Add hostname
 $domains[] = [
-	'ipv4' => json_decode(shell_exec('whmapi1 --output=json get_shared_ip'), true)['data']['ip'],
-	'php_version' => json_decode(shell_exec('whmapi1 --output=jsonpretty php_get_system_default_version'), true)['data']['version'],
+	'ipv4' => callWhmApi('--output=json get_shared_ip')['data']['ip'],
+	'php_version' => callWhmApi('--output=jsonpretty php_get_system_default_version')['data']['version'],
 	'user' => "root",
 	'port' => "80",
 	'port_ssl' => "443",
-	'domain' => json_decode(shell_exec('whmapi1 --output=json gethostname'), true)['data']['hostname'],
+	'domain' => callWhmApi('--output=json gethostname')['data']['hostname'],
 	'docroot' => "/var/www/html",
-	'ipv4_ssl' => json_decode(shell_exec('whmapi1 --output=json get_shared_ip'), true)['data']['ip'],
+	'ipv4_ssl' => callWhmApi('--output=json get_shared_ip')['data']['ip'],
 ];
 // Fix strange bug
 if (empty($domains[count($domains) - 1]['domain'])) {
@@ -42,14 +42,14 @@ $premade = '';
 $listeners = [];
 $listeners_ssl = [];
 foreach ($domains as $domain) {
-	$sslInfo = json_decode(shell_exec("whmapi1 --output=json   fetch_vhost_ssl_components"), true);
+	$sslInfo = callWhmApi("--output=json   fetch_vhost_ssl_components");
 	foreach ($sslInfo["data"]["components"] as $v) {
 		if ($v["servername"] == $domain["domain"]) {
 			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".crt", $v["certificate"]);
 			file_put_contents("/usr/local/lsws/conf/sslcerts/" . $domain["domain"] . ".key", $v["key"]);
 		}
 	}
-	$w = file_get_contents("vhost.conf");
+	$w = file_get_contents("/usr/local/lsws/configparse/vhost.conf");
 	$w = str_replace("[RANDOMSTRING]",$domain["user"] . '-' . bin2hex(random_bytes(2)), $w);
 	$w = str_replace("[DOCROOT]",$domain["docroot"], $w);
 	$w = str_replace("[USER]",$domain["user"], $w);
@@ -59,7 +59,7 @@ foreach ($domains as $domain) {
 	$w = str_replace("[SSL]", $map, $w);
 	file_put_contents("/usr/local/lsws/conf/vhosts/" . $domain["domain"] . ".conf", $w);
 
-	$x = file_get_contents("vhost_pre.conf");
+	$x = file_get_contents("/usr/local/lsws/configparse/vhost_pre.conf");
 	$vhostid = $domain['domain'];
 	$x = str_replace("[RANDOMSTRING]", $vhostid, $x);
 	$x = str_replace("[DOCROOT]", $domain["docroot"], $x);
@@ -79,7 +79,7 @@ foreach ($domains as $domain) {
 	}
 }
 foreach ($listeners as $c => $l) {
-	$px = file_get_contents("vhost_listeners.conf");
+	$px = file_get_contents("/usr/local/lsws/configparse/vhost_listeners.conf");
 	$px = str_replace("[IPADD]", $c, $px);
 	$px = str_replace("[SECURE]", "0", $px);
 	$px = str_replace("[RANDOMSTRING]", $c, $px);
@@ -91,7 +91,7 @@ foreach ($listeners as $c => $l) {
 	$premade .= "\n" . $px;
 }
 foreach ($listeners_ssl as $c => $l) {
-	$px = file_get_contents("vhost_listeners.conf");
+	$px = file_get_contents("/usr/local/lsws/configparse/vhost_listeners.conf");
 	$px = str_replace("[IPADD]", $c, $px);
 	$px = str_replace("[SECURE]", "1", $px);
 	$px = str_replace("[RANDOMSTRING]", $c, $px);
@@ -110,9 +110,9 @@ echo "\n RESTARTING LSHTTPD \n";
 shell_exec("systemctl restart lshttpd");
 
 function changesDetector() {
-	$domains = json_decode(shell_exec("whmapi1 --output=json get_domain_info"), true);
+	$domains = callWhmApi("--output=json get_domain_info");
 	$domains = $domains["data"]["domains"];
-	$sslInfo = json_decode(shell_exec("whmapi1 --output=json fetch_vhost_ssl_components"), true);
+	$sslInfo = callWhmApi("--output=json fetch_vhost_ssl_components");
 	$sslInfo = $sslInfo["data"]["components"];  
 	$c = "";
 	foreach ($domains as $domain) {
@@ -130,6 +130,16 @@ function changesDetector() {
 		$c .= $v["key"];
 	}
 	return md5($c);
+}
+
+function callWhmApi($params) {
+	$result = shell_exec("whmapi1 $params");
+	$json = json_decode($result, true);
+	if (empty($result)) {
+		echo "\n whmapi1 error: $result \n";
+		exit();
+	}
+	return $json;
 }
 
 function convertPHP($phpId) {

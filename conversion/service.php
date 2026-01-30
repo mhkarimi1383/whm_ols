@@ -135,7 +135,7 @@ function changesDetector() {
 function callWhmApi($params) {
 	$result = shell_exec("whmapi1 $params");
 	$json = json_decode($result, true);
-	if (empty($json) || (isset($json['status']) && json['status'] == 0)) {
+	if (empty($json) || (isset($json['status']) && $json['status'] == 0)) {
 		echo "\n whmapi1 error: $result \n";
 		exit();
 	}

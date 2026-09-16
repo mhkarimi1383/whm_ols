@@ -26,7 +26,9 @@ This replaces the Apache web server with Openlitespeed. I have created a custom 
 1. Clone this repo
 2. Ensure Enterprise LSWS is not installed and cPanel Plugin for Enterprise LSWS is removed.
 3. Create a server snapshot/backup ( RECOMMENDED )
-4. Run install.sh 
+4. Run install.sh
+
+> If your getting 404/403 errors from webserver after installation, You should disable File Protect feature by going to Server Configuration -> tweak settings -> Security Tab -> Enable File Protect [?] -> Off
 
 ### Custom OpenLitespeed Version
 

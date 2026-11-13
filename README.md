@@ -30,6 +30,8 @@ This replaces the Apache web server with Openlitespeed. I have created a custom 
 
 > If your getting 404/403 errors from webserver after installation, You should disable File Protect feature by going to Server Configuration -> tweak settings -> Security Tab -> Enable File Protect [?] -> Off
 
+> If using CloudLinux set fs.enforce_symlinksifowner=1 in sysctl parameters
+
 ### Custom OpenLitespeed Version
 
 As of creating this script, the current version of OpenLiteSpeed was 1.7.16. This can be updated by modifying the variable OSLSWSVER in the install.sh file. Once modified you can run the install.sh file to upgrade OpenLiteSpeed.
